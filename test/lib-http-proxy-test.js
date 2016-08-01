@@ -62,6 +62,7 @@ describe('lib/http-proxy.js', function() {
     })
   });
 
+  // reverse proxy, forward any http request from proxy to target server
   describe('#createProxyServer using the web-incoming passes', function () {
     it('should proxy sse', function(done){
       var ports = { source: gen.port, proxy: gen.port },
@@ -188,7 +189,7 @@ describe('lib/http-proxy.js', function() {
 
   describe('#createProxyServer setting the correct timeout value', function () {
     it('should hang up the socket at the timeout', function (done) {
-      this.timeout(30);
+      this.timeout(30);//mocha timeout
       var ports = { source: gen.port, proxy: gen.port };
       var proxy = httpProxy.createProxyServer({
         target: 'http://127.0.0.1:' + ports.source,

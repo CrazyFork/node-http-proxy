@@ -1,3 +1,79 @@
+## 这个模块的工作方式
+简单来说就是启动了一个httpServer, 如果这个server接受到任何请求, 这个server自己内部就会动态创建
+一个http的request, 通过这个request请求目标服务器, 得到结果以后，再将结果返回给客户端。
+
+
+比较重要的方法就是 /lib/http-proxy/passes/web-incoming.js 中的 stream 
+
+
+```javascript
+//1. create http server
+this._server  = this.options.ssl ?
+  https.createServer(this.options.ssl, closure) :
+  http.createServer(closure);
+
+// 2.pipe request
+(options.buffer || req).pipe(proxyReq);
+
+// 3.pipe response
+proxyReq.on('response', function(proxyRes) {
+  // send out events etc....
+  proxyRes.pipe(res);
+});
+```
+
+
+### Types
+ProxyServer:
+  a subclass of EventEmiter, essentially its a http server created using http.createServer api.
+  it orchestrates all the proxy work which is handling request on the client's behave.
+
+Pass: (req, resp, header .....)=>Boolean
+  is a function type that do some necessiary processings on req & resp obj
+
+
+
+
+
+
+
+
+### target vs forward.
+从源码中看, target 的机制比forward要复杂些, forward只是将original http request 做广播, 然后就完了。
+```javascript
+(options.buffer || req).pipe(forwardReq);
+if(!options.target) { return res.end(); }
+```
+
+target则能监听到所有的发送到成功或者失败的各个阶段的事件, 并能够得到response的返回.
+
+
+
+### passes
+这个模块有 Passes的概念, 应该就是对请求和返回做些对应的处理, 加一些http header...etc  
+所有的 Passes 接受的参数都是一样的, 如果任何一个Pass返回true, 定义下面的pass都不会得到执行  
+
+Pass分3种, web-incoming, web-outgoing, ws-incoming(websocket相关的)
+
+```javascript
+// index.js @ createRightProxy 方法
+if(passes[i](req, res, options, head, this, cbl)) { // passes can return a truthy value to halt the loop
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+======
+
 <p align="center">
   <img src="https://raw.github.com/nodejitsu/node-http-proxy/master/doc/logo.png"/>
 </p>
